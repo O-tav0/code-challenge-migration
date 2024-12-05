@@ -1,12 +1,14 @@
 package com.example.dummyjson.service;
 
 import com.example.dummyjson.dto.Product;
+import com.example.dummyjson.dto.ResponseAllProductsJsonDummyDTO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -24,6 +26,9 @@ public class ProductServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Value("${integration.dummyjson.host}")
+    private String BASE_URL;
+
     @Test
     public void testGetAllProducts() {
         Product product1 = new Product();
@@ -34,8 +39,11 @@ public class ProductServiceTest {
         product2.setId(2L);
         product2.setTitle("Product 2");
 
+        ResponseAllProductsJsonDummyDTO response = new ResponseAllProductsJsonDummyDTO();
         Product[] products = {product1, product2};
-        when(restTemplate.getForObject("https://dummyjson.com/products", Product[].class)).thenReturn(products);
+        response.setProducts(products);
+
+        when(restTemplate.getForObject(BASE_URL, ResponseAllProductsJsonDummyDTO.class)).thenReturn(response);
 
         List<Product> result = productService.getAllProducts();
         assertEquals(2, result.size());
@@ -48,7 +56,7 @@ public class ProductServiceTest {
         product.setId(1L);
         product.setTitle("Product 1");
 
-        when(restTemplate.getForObject("https://dummyjson.com/products/1", Product.class)).thenReturn(product);
+        when(restTemplate.getForObject(BASE_URL + "/1", Product.class)).thenReturn(product);
 
         Product result = productService.getProductById(1L);
         assertEquals("Product 1", result.getTitle());
