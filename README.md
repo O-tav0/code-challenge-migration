@@ -106,3 +106,10 @@ mvn clean test
 
 - Entregar o projeto em container será um diferencial.
 - Fica a critério do desenvolvedor inserir ou remover dependencias do projeto para garantir o objetivo do challenge.
+
+## Alterando os profiles do spring
+
+- Para ativar um profile diferente na aplicação:
+```bash
+mvn spring-boot:run -D"spring-boot.run.profiles={profileDesejado}"
+```
