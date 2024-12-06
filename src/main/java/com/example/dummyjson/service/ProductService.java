@@ -18,7 +18,6 @@ public class ProductService {
                 .baseUrl(BASE_URL)
                 .build();
 
-        System.out.println("Ambiente" + BASE_URL);
         ResponseAllProductsJsonDummyDTO response = webClient.get()
                 .retrieve()
                 .bodyToMono(ResponseAllProductsJsonDummyDTO.class)

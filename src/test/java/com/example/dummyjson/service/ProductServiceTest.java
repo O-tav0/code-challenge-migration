@@ -1,6 +1,8 @@
 package com.example.dummyjson.service;
 
 import com.example.dummyjson.dto.Product;
+import com.example.dummyjson.dto.ResponseAllProductsJsonDummyDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
@@ -42,17 +44,25 @@ public class ProductServiceTest {
 
     @Test
     public void testGetAllProducts() throws Exception {
-        String jsonResponse = """
-                {
-                    "products": [
-                        {"id": 1, "title": "Product 1"},
-                        {"id": 2, "title": "Product 2"}
-                    ]
-                }
-                """;
+        ResponseAllProductsJsonDummyDTO response = new ResponseAllProductsJsonDummyDTO();
+
+        Product product1 = new Product();
+        product1.setId(1L);
+        product1.setTitle("Product 1");
+
+        Product product2 = new Product();
+        product2.setId(2L);
+        product2.setTitle("Product 2");
+
+        Product[] productsMock = {product1, product2};
+
+        response.setProducts(productsMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(response);
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody(jsonResponse)
+                .setBody(json)
                 .addHeader("Content-Type", "application/json"));
 
         List<Product> products = productService.getAllProducts();
@@ -63,15 +73,15 @@ public class ProductServiceTest {
 
     @Test
     public void testGetProductById() throws Exception {
-        String jsonResponse = """
-                {
-                    "id": 1,
-                    "title": "Product 1"
-                }
-                """;
+        Product product1 = new Product();
+        product1.setId(1L);
+        product1.setTitle("Product 1");
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(product1);
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody(jsonResponse)
+                .setBody(json)
                 .addHeader("Content-Type", "application/json"));
 
         Product product = productService.getProductById(1L);
