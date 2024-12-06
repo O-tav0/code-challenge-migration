@@ -113,3 +113,19 @@ mvn clean test
 ```bash
 mvn spring-boot:run -D"spring-boot.run.profiles={profileDesejado}"
 ```
+
+## Para rodar o projeto com o docker
+
+- Para compilar o projeto e gerar o .jar:
+```bash
+mvn clean install
+```
+- Após isso, para gerar a imagem que vai ao container:
+```bash
+docker build -t dummy-json --build-arg JAR_FILE="target/dummyjson-client-1.0-SNAPSHOT.jar" .
+```
+
+- E por fim, para subir o container:
+```bash
+docker run -p 8080:8080 dummy-json
+```
