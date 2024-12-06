@@ -1,68 +1,80 @@
 package com.example.dummyjson.service;
 
 import com.example.dummyjson.dto.Product;
-import com.example.dummyjson.dto.ResponseAllProductsJsonDummyDTO;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ProductServiceTest {
 
-    @InjectMocks
+    @Autowired
     private ProductService productService;
 
-    @Mock
-    private RestTemplate restTemplate;
+    private static MockWebServer mockWebServer;
 
-    @Mock
-    private WebClient webClient;
+    @BeforeAll
+    static void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+    }
 
-    @Value("${integration.dummyjson.host}")
-    private String BASE_URL;
+    @AfterAll
+    static void tearDown() throws IOException {
+        mockWebServer.shutdown();
+    }
 
-    @Test
-    public void testGetAllProducts() {
-        Product product1 = new Product();
-        product1.setId(1L);
-        product1.setTitle("Product 1");
-
-        Product product2 = new Product();
-        product2.setId(2L);
-        product2.setTitle("Product 2");
-
-        ResponseAllProductsJsonDummyDTO response = new ResponseAllProductsJsonDummyDTO();
-        Product[] products = {product1, product2};
-        response.setProducts(products);
-
-        when(restTemplate.getForObject(BASE_URL, ResponseAllProductsJsonDummyDTO.class)).thenReturn(response);
-
-        List<Product> result = productService.getAllProducts();
-        assertEquals(2, result.size());
-        assertEquals("Product 1", result.get(0).getTitle());
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("integration.dummyjson.host", () -> mockWebServer.url("/").toString());
     }
 
     @Test
-    public void testGetProductById() {
-        Product product = new Product();
-        product.setId(1L);
-        product.setTitle("Product 1");
+    public void testGetAllProducts() throws Exception {
+        String jsonResponse = """
+                {
+                    "products": [
+                        {"id": 1, "title": "Product 1"},
+                        {"id": 2, "title": "Product 2"}
+                    ]
+                }
+                """;
 
-        when(restTemplate.getForObject(BASE_URL + "/1", Product.class)).thenReturn(product);
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(jsonResponse)
+                .addHeader("Content-Type", "application/json"));
 
-        Product result = productService.getProductById(1L);
-        assertEquals("Product 1", result.getTitle());
+        List<Product> products = productService.getAllProducts();
+        assertEquals(2, products.size());
+        assertEquals("Product 1", products.get(0).getTitle());
+        assertEquals("Product 2", products.get(1).getTitle());
+    }
+
+    @Test
+    public void testGetProductById() throws Exception {
+        String jsonResponse = """
+                {
+                    "id": 1,
+                    "title": "Product 1"
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(jsonResponse)
+                .addHeader("Content-Type", "application/json"));
+
+        Product product = productService.getProductById(1L);
+        assertEquals("Product 1", product.getTitle());
     }
 }
