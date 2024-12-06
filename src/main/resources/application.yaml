@@ -3,3 +3,25 @@ server:
 integration:
   dummyjson:
     host: https://dummyjson.com/products
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dsv
+server:
+  port: 8081
+integration:
+  dummyjson:
+    host: https://dummyjson.com/products
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prd
+server:
+  port: 8080
+integration:
+  dummyjson:
+    host: https://dummyjson.com/products
